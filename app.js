@@ -76,9 +76,10 @@ app.get("/:customListName", function(req,res) {
           items: defaultItems
         });
         list.save();
+        res.redirect("/" + customListName);
       } else {
         // console.log("exists");
-        res.render("list", {listTitle: foundList.name, newListItems: foundItems.items});
+        res.render("list", {listTitle: foundList.name, newListItems: foundList.items});
       }
     }
   })
@@ -87,13 +88,24 @@ app.get("/:customListName", function(req,res) {
 app.post("/", function(req, res){
 
   const itemName = req.body.newItem;
+  const listName = req.body.list;
+
   const item = new Item ({
     name: itemName
   });
 
-  item.save();
+  if(listName === "Today") {
+    item.save();
 
-  res.redirect("/");
+    res.redirect("/");
+  } else {
+    List.findOne({name: listName}, function(err, foundList) {
+      foundList.items.push(item);
+      foundList.save();
+      res.redirect("/" + listName);
+    })
+  }
+  
 });
 
 app.post("/delete", function(req, res) {
